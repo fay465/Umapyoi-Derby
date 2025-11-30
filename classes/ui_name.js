@@ -9,7 +9,6 @@ ScreenName.prototype.update=function(){
     if(btnp(3)) this.pos = (this.pos + 1) % 3;
 
     if(btnp(0)) this.letters[this.pos] = (this.letters[this.pos] >= 90) ? 65 : this.letters[this.pos] + 1; 
-    
     if(btnp(1)) this.letters[this.pos] = (this.letters[this.pos] <= 65) ? 90 : this.letters[this.pos] - 1; 
     
     if(btnp(4)) { 
@@ -37,7 +36,17 @@ ScreenName.prototype.draw=function(){
         print(String.fromCharCode(this.letters[i]), x+i*24, y, c); 
     } 
 
-    print('ARRIBA/ABAJO: Letra', 50, 96, 6); 
-    print('IZQ/DER: Mover', 60, 106, 6);
-    print('A: Confirmar', 90, 120, 14); 
+    var yInst = 95;
+
+    spr(KEY_UP, 50, yInst, 0, 1, 0, 0, 2, 2); 
+    spr(KEY_DOWN, 62, yInst, 0, 1, 0, 0, 2, 2); 
+    print('Letra', 80, yInst+5, 6); 
+
+    spr(KEY_LEFT, 50, yInst+14, 0, 1, 0, 0, 2, 2); 
+    spr(KEY_RIGHT, 62, yInst+14, 0, 1, 0, 0, 2, 2); 
+    print('Mover', 80, yInst+19, 6);
+
+    var yK = 122;
+    spr(KEY_Z, 70, yK, 0, 1, 0, 0, 2, 2);
+    print('Confirmar', 88, yK+5, 14); 
 };

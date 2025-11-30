@@ -5,7 +5,7 @@
 // saveid: horserace
 // input: gamepad, mouse
 
-//// =========================
+// =========================
 // header.js
 // =========================
 var W=240, H=136;
@@ -13,11 +13,11 @@ var W=240, H=136;
 var LAY={
     M: W/2, 
     trackX0:10, 
-    trackX1:190,  
-    yTop:20,
-    yGap:25,
+    trackX1:180,  
+    yTop:22,
+    yGap:22,
     
-    lineCardsY:114, 
+    lineCardsY:110, 
     
     drawCardX: 224, 
     drawCardY: 60,
@@ -26,26 +26,49 @@ var LAY={
     chipRowY:116, margin:8
 };
 
+var KEY_Z = 412;
+var KEY_X = 444;
+var KEY_A = 476;
+
+var KEY_RIGHT = 382;
+var KEY_DOWN  = 414;
+var KEY_UP    = 446;
+var KEY_LEFT  = 478;
+
+var SPR_POOF = [264, 266, 268]; 
+var SPR_STUN = [316, 364];      
+
+var CHIP_SPRITES = {
+    100:  [2, 98, 34, 66],
+    500:  [4, 100, 36, 68],
+    1000: [6, 102, 38, 70],
+    5000: [8, 104, 40, 72]
+};
+
+var LINKS=10; var LINE_CARDS=8;
+var CHIP_VALS=[100,500,1000,5000];
+
+var SUIT_COL=[0,2,4,11]; 
+var SUIT_LET=['S','H','D','C'];
+
 var __seed=(time()|0)^0x9e3779b9; function _imul(a,b){return (a*b)|0;}
 function rnd(){ __seed=(_imul(__seed,1664525)+1013904223)|0; return ((__seed>>>0)/4294967296);}
 function rndi(n){return (rnd()*n)|0;}
 function clamp(v,a,b){return v<a?a:v>b?b:v;}
 
-var SUIT_COL=[0,2,2,11]; var SUIT_LET=['S','H','D','C'];
 function ink(s){ return (s===0)?14:SUIT_COL[s]; }
+function fmt(n){ return n.toString(); }
 
-var LINKS=10; var LINE_CARDS=8;
+function pal(c0, c1){
+    if(c0 === undefined && c1 === undefined){
+        for(var i=0; i<16; i++){ poke4(0x3FF0 * 2 + i, i); }
+    } else { poke4(0x3FF0 * 2 + c0, c1); }
+}
 
 var M={x:0,y:0,l:false,_pl:false,lp:false};
 function updMouse(){ var a=mouse(); M.x=a[0]|0; M.y=a[1]|0; M.l=!!a[2]; M.lp=M.l&&!M._pl; M._pl=M.l; }
 function hit(x,y,w,h){ return M.x>=x&&M.y>=y&&M.x<x+w&&M.y<y+h; }
 
-var CHIP_VALS=[100,500,1000,5000];
-function fmt(n){ return n.toString(); }
-
-// =========================
-// High Scores
-// =========================
 function hs_load(){
     var arr=[]; var base=10;
     for(var i=0;i<5;i++){

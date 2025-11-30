@@ -17,8 +17,6 @@ ScreenFinish.prototype.update=function(){
             this.m.resetRaceOnly(); 
             scene=bet;              
         }
-
-
         if(btnp(6)){
             var finalScore = this.m.bank;
             if(hs_qualify(finalScore)){
@@ -34,32 +32,40 @@ ScreenFinish.prototype.update=function(){
     }
 };
 
-ScreenFinish.prototype.draw=function(){ 
+ScreenFinish.prototype.draw=function(){
     cls(0); 
     
     var centerX = 120;
 
-    rect(50, 20, 140, 96, 0); 
-    rectb(50, 20, 140, 96, 12);
+    rect(45, 20, 150, 96, 0); 
+    rectb(45, 20, 150, 96, 12);
     
     var bankT='BANCO '+ (this.m.bank|0) +'  BEST '+(pmem(1)|0); 
     var w2=print(bankT,0,-6,0,true,1,true);
     print(bankT,(W-w2)/2, 26, 7, false, 1, true);
     
     if(this.m.winner>=0){ 
-        
         var txt = "GANADOR";
         var wTxt = print(txt, 0, -10, 0); 
-        print(txt, centerX - (wTxt/2), 38, 14);
+        print(txt, centerX - (wTxt/2), 38, 14); 
         
         var iconId = ICON_IDS[this.m.winner];
+        
+        if(typeof pal === 'function'){
+            pal(14, TEAM_COLS[this.m.winner]); 
+            pal(15, TEAM_COLS[this.m.winner]); 
+            pal(0, TEAM_COLS[this.m.winner]); 
+            pal(2, TEAM_COLS[this.m.winner]); 
+        }
         spr(iconId, centerX - 4, 48, 0, 1, 0, 0, 1, 1);
+        if(typeof pal === 'function') pal();
+        
         var winnerHorse = this.m.caballos[this.m.winner];
         var oldX = winnerHorse.startX;
         var oldY = winnerHorse.laneY;
         
         winnerHorse.startX = centerX - (winnerHorse.pos * winnerHorse.dx);
-        winnerHorse.laneY = 65;
+        winnerHorse.laneY = 65; 
         
         winnerHorse.draw(true, true); 
         
@@ -70,21 +76,20 @@ ScreenFinish.prototype.draw=function(){
         print('GAME OVER', 92, 50, 14); 
     } 
     
+    var yBtn = 90;
+    
     if(this.m.bank <= 0){
         var txt1 = "¡BANCARROTA!";
         var w1 = print(txt1,0,-10,0);
-        print(txt1, centerX - (w1/2), 80, 2);
+        print(txt1, centerX - (w1/2), 85, 2);
         
-        var txt2 = "START: Salir al Menú";
-        var w2 = print(txt2,0,-10,0,false,1,true);
-        print(txt2, centerX - (w2/2), 100, 6, false, 1, true);
+        spr(KEY_A, centerX - 40, yBtn+5, 0, 1, 0, 0, 2, 2);
+        print("Salir al Menú", centerX - 20, yBtn+10, 6);
     } else {
-        var txtA = "A: Seguir Jugando";
-        var wA = print(txtA,0,-10,0,false,1,true);
-        print(txtA, centerX - (wA/2), 90, 6, false, 1, true);
-        
-        var txtS = "START: Retirarse";
-        var wS = print(txtS,0,-10,0,false,1,true);
-        print(txtS, centerX - (wS/2), 100, 13, false, 1, true);
+        spr(KEY_Z, 55, yBtn-5, 0, 1, 0, 0, 2, 2);
+        print("Seguir", 75, yBtn, 6);
+
+        spr(KEY_A, 115, yBtn-5, 0, 1, 0, 0, 2, 2);
+        print("Retirarse", 133, yBtn, 13);
     }
 };

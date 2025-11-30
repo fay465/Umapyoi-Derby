@@ -45,7 +45,7 @@ $(OUTPUT):
 	@echo Archivos combinados EXITOSAMENTE en $(OUTPUT)
 
 run:
-	$(TIC) --fs "." --cmd "new js & import code $(OUTPUT) & import tiles tiles.png & import sprites sprites.png & save $(CART) & run"
+	$(TIC) --fs "." --cmd "new js & import code $(OUTPUT) & import tiles tiles.png & import sprites sprites.png & import map map.map & save $(CART) & run"
 	@echo Ejecutando $(CART)
 
 clean:

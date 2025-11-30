@@ -2,10 +2,11 @@
 // classes/ui.js
 // =========================
 
-// IDs CONFIGURADOS:
-var CARD_IDS = [400, 403, 406, 409];
-var ICON_IDS = [258, 256, 260, 262];
-var LINE_IDS = [464, 467, 470, 473];
+var CARD_IDS = [400, 403, 406, 409]; 
+var ICON_IDS = [258, 256, 260, 262]; 
+var LINE_IDS = [464, 467, 470, 473]; 
+
+var TEAM_COLS = [13, 2, 4, 11];
 
 function UI(){ this.msgTimer=0; this.msg=""; }
 
@@ -29,7 +30,18 @@ UI.prototype.drawLineCards=function(startX,dx,ys,lineRevealed,lineSuits){
         
         if(lineRevealed[l]){ 
             var s=lineSuits[l]; 
+            
+            if(typeof pal === 'function'){
+                pal(14, TEAM_COLS[s]);
+                pal(15, TEAM_COLS[s]);
+                pal(0, TEAM_COLS[s]);
+                pal(2, TEAM_COLS[s]);
+            }
+            
             spr(LINE_IDS[s], x-8, y-8, 0, 1, 0, 0, 2, 2);
+            
+            if(typeof pal === 'function') pal();
+            
         } else {
             rect(x-6, y-9, 12, 18, 1);
         }
@@ -42,6 +54,13 @@ UI.prototype.hudTop=function(){
 UI.prototype.hudFinish=function(winner,bank,best){
     rect(50,30,140,85,0); 
     rectb(50,30,140,85,12);
+    
+    var bankT='BANCO '+bank+' BEST '+best; 
+    var w2=print(bankT,0,-6,0,true,1,true);
+    print(bankT,(W-w2)/2,80,7,false,1,true);
+    
+    print('A: Continuar', 60, 92, 6);
+    print('START: Menú', 130, 92, 13);
 };
 
 UI.prototype.drawLastCard=function(card){
@@ -52,7 +71,16 @@ UI.prototype.drawLastCard=function(card){
     
     if(!card) return;
     
+    if(typeof pal === 'function'){
+        pal(14, TEAM_COLS[card.s]); 
+        pal(15, TEAM_COLS[card.s]);
+        pal(0, TEAM_COLS[card.s]);
+        pal(2, TEAM_COLS[card.s]); 
+    }
+    
     spr(CARD_IDS[card.s], cx-8, cy-12, 0, 1, 0, 0, 2, 3);
+    
+    if(typeof pal === 'function') pal();
 };
 
 UI.prototype.chipRow=function(activeChip){
@@ -67,7 +95,18 @@ UI.prototype.bankInfo=function(bank){ print("BANCO:"+fmt(bank), W-70, LAY.chipRo
 UI.prototype.betBadges=function(startX,ys,bets){
     for(var s=0;s<4;s++){
         var y=ys[s]; 
+        
+        if(typeof pal === 'function'){
+            pal(14, TEAM_COLS[s]); 
+            pal(15, TEAM_COLS[s]);
+            pal(0, TEAM_COLS[s]);
+            pal(2, TEAM_COLS[s]); 
+        }
+        
         spr(ICON_IDS[s], startX-12, y-4, 0, 1, 0, 0, 1, 1);
+        
+        if(typeof pal === 'function') pal();
+        
         var v=bets[s]||0; 
         if(v>0) print(v,startX-12,y+6,7,false,1,true);
     }
