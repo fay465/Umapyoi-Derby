@@ -24,12 +24,7 @@ ScreenRace.prototype.draw=function(){
     
     var x0=this.m.startX,x1=this.m.finishX,dx=this.m.dx,ys=this.m.ys; 
 
-    rectb(x0-10,ys[0]-16,(x1-x0)+20,(ys[3]-ys[0])+32,6); 
-    for(var i=0;i<4;i++) line(x0-4,ys[i],x1+4,ys[i],5); 
-    for(var k=0;k<=LINKS;k++){ 
-        var x=(x0+k*dx)|0; var col=(k===LINKS)?14:6; 
-        for(var seg=ys[0]-10; seg<=ys[3]+10; seg+=8) line(x,seg,x,seg+3,col); 
-    } 
+    map(60, 0, 30, 17, 0, 0, -1);
 
     ui.drawLineCards(x0, dx, ys, this.m.lineRevealed, this.m.lineSuits);
 

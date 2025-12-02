@@ -619,12 +619,7 @@ ScreenRace.prototype.draw=function(){
     
     var x0=this.m.startX,x1=this.m.finishX,dx=this.m.dx,ys=this.m.ys; 
 
-    rectb(x0-10,ys[0]-16,(x1-x0)+20,(ys[3]-ys[0])+32,6); 
-    for(var i=0;i<4;i++) line(x0-4,ys[i],x1+4,ys[i],5); 
-    for(var k=0;k<=LINKS;k++){ 
-        var x=(x0+k*dx)|0; var col=(k===LINKS)?14:6; 
-        for(var seg=ys[0]-10; seg<=ys[3]+10; seg+=8) line(x,seg,x,seg+3,col); 
-    } 
+    map(60, 0, 30, 17, 0, 0, -1);
 
     ui.drawLineCards(x0, dx, ys, this.m.lineRevealed, this.m.lineSuits);
 
@@ -765,7 +760,7 @@ ScreenFinish.prototype.draw=function(){
 function ScreenMenu(){ 
     this.idx=0; 
     this.opts=['Iniciar juego','Ver scores']; 
-    
+
     this.scrollX = 0;
     this.scrollSpeed = 2; 
 
@@ -807,35 +802,10 @@ ScreenMenu.prototype.draw=function(){
         this.menuHorses[i].draw(false, false);
     }
 
-    var title = "UMAPYOI";
-    var scale = 4;
-    var wTitle = print(title, 0, -200, 0, false, scale, true); 
-    var tx = (W - wTitle) / 2;
-    var ty = 25;
-    
-    var borderCol = 2; 
-    var offs = [[-2,0], [2,0], [0,-2], [0,2], [-2,-2], [2,-2], [-2,2], [2,2]];
-    
-    for(var i=0; i<offs.length; i++){
-        print(title, tx+offs[i][0], ty+offs[i][1], borderCol, false, scale, true);
-    }
-
-    print(title, tx, ty, 12, false, scale, true); 
-
-    var sub = "DERBY";
-    var sScale = 2;
-    var wSub = print(sub, 0, -200, 0, false, sScale, true);
-    var sx = (W - wSub) / 2;
-    var sy = 55; 
-
-    print(sub, sx+1, sy, 0, false, sScale, true);
-    print(sub, sx-1, sy, 0, false, sScale, true);
-    print(sub, sx, sy+1, 0, false, sScale, true);
-    print(sub, sx, sy-1, 0, false, sScale, true);
-    print(sub, sx, sy, 14, false, sScale, true);
+    spr(144, 56, 25, 0, 1, 0, 0, 16, 3);
 
     for(var i=0;i<2;i++){
-        var y=85+i*14;
+        var y=70+i*14;
         var c=(i===this.idx)?14:7; 
         var txt = (i===this.idx?'> ':' ')+this.opts[i];
         

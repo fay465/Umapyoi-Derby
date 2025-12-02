@@ -4,7 +4,7 @@
 function ScreenMenu(){ 
     this.idx=0; 
     this.opts=['Iniciar juego','Ver scores']; 
-    
+
     this.scrollX = 0;
     this.scrollSpeed = 2; 
 
@@ -46,35 +46,10 @@ ScreenMenu.prototype.draw=function(){
         this.menuHorses[i].draw(false, false);
     }
 
-    var title = "UMAPYOI";
-    var scale = 4;
-    var wTitle = print(title, 0, -200, 0, false, scale, true); 
-    var tx = (W - wTitle) / 2;
-    var ty = 25;
-    
-    var borderCol = 2; 
-    var offs = [[-2,0], [2,0], [0,-2], [0,2], [-2,-2], [2,-2], [-2,2], [2,2]];
-    
-    for(var i=0; i<offs.length; i++){
-        print(title, tx+offs[i][0], ty+offs[i][1], borderCol, false, scale, true);
-    }
-
-    print(title, tx, ty, 12, false, scale, true); 
-
-    var sub = "DERBY";
-    var sScale = 2;
-    var wSub = print(sub, 0, -200, 0, false, sScale, true);
-    var sx = (W - wSub) / 2;
-    var sy = 55; 
-
-    print(sub, sx+1, sy, 0, false, sScale, true);
-    print(sub, sx-1, sy, 0, false, sScale, true);
-    print(sub, sx, sy+1, 0, false, sScale, true);
-    print(sub, sx, sy-1, 0, false, sScale, true);
-    print(sub, sx, sy, 14, false, sScale, true);
+    spr(144, 56, 25, 0, 1, 0, 0, 16, 3);
 
     for(var i=0;i<2;i++){
-        var y=85+i*14;
+        var y=70+i*14;
         var c=(i===this.idx)?14:7; 
         var txt = (i===this.idx?'> ':' ')+this.opts[i];
         
