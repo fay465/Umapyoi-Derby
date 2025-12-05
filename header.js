@@ -91,3 +91,30 @@ function hs_save(arr){
 }
 function hs_qualify(score){ var arr=hs_load(); return (score>arr[4].score)?true:false; }
 function hs_insert(score,name){ var arr=hs_load(); arr.push({score:score,name:name}); arr.sort(function(a,b){return b.score-a.score;}); arr=arr.slice(0,5); hs_save(arr); }
+
+
+var MUS_RACE = 0;
+var MUS_WIN_TRACK = 1;
+var MUS_WIN_FRAME = 4;
+var MUS_MENU = 2;
+var MUS_BET  = 3;
+
+var SND_NAV  = 40;
+var SND_SEL  = 41;
+var SND_STEP = 42;
+var SND_FLIP = 43;
+var SND_WIN  = 44; 
+
+var currentMusic = -1;
+
+function playMus(track){
+    if(currentMusic !== track){
+        music(track, 0, 0, true);
+        currentMusic = track;
+    }
+}
+
+function stopMus(){
+    music(-1);
+    currentMusic = -1;
+}

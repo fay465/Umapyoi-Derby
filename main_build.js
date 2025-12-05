@@ -90,7 +90,34 @@ function hs_save(arr){
     }
 }
 function hs_qualify(score){ var arr=hs_load(); return (score>arr[4].score)?true:false; }
-function hs_insert(score,name){ var arr=hs_load(); arr.push({score:score,name:name}); arr.sort(function(a,b){return b.score-a.score;}); arr=arr.slice(0,5); hs_save(arr); } 
+function hs_insert(score,name){ var arr=hs_load(); arr.push({score:score,name:name}); arr.sort(function(a,b){return b.score-a.score;}); arr=arr.slice(0,5); hs_save(arr); }
+
+
+var MUS_RACE = 0;
+var MUS_WIN_TRACK = 1;
+var MUS_WIN_FRAME = 4;
+var MUS_MENU = 2;
+var MUS_BET  = 3;
+
+var SND_NAV  = 40;
+var SND_SEL  = 41;
+var SND_STEP = 42;
+var SND_FLIP = 43;
+var SND_WIN  = 44; 
+
+var currentMusic = -1;
+
+function playMus(track){
+    if(currentMusic !== track){
+        music(track, 0, 0, true);
+        currentMusic = track;
+    }
+}
+
+function stopMus(){
+    music(-1);
+    currentMusic = -1;
+} 
 // =========================
 // classes/mazo.js
 // =========================
@@ -236,28 +263,25 @@ RaceModel.prototype.stepFlip=function(){
     var h=this.caballos[s]; 
     
     h.isStunned = false; 
-    
     h.pos=clamp(h.pos+1,0,LINKS); 
+    
     
     for(var l=1;l<=LINE_CARDS;l++){ 
         if(!this.lineRevealed[l]){ 
             var all=true; 
             for(var j=0;j<4;j++){ 
-                if(this.caballos[j].pos < l){ 
-                    all=false; 
-                    break; 
-                } 
+                if(this.caballos[j].pos < l){ all=false; break; } 
             } 
             
             if(all){ 
                 this.lineRevealed[l]=true; 
+                
                 
                 var sb=this.lineSuits[l]; 
                 var hb=this.caballos[sb]; 
                 
                 if(hb.pos > 0){ 
                     hb.pos--; 
-
                     hb.isStunned = true; 
                     hb.poofT = 24;
                 } 
@@ -406,277 +430,192 @@ UI.prototype.drawMsg=function(){ if(this.msgTimer>0){ var w=print(this.msg,0,-6,
 // classes/ui_bet.js
 // =========================
 function ScreenBet(m){ 
-    this.m=m; 
-    this.active=100; 
-    this.clickCD=0; 
-    
-    this.row = 1; 
-    this.col = 0; 
-    this.animT = 0;
-    this.exitPrompt = false;
+    this.m=m; this.active=100; this.clickCD=0; 
+    this.row = 1; this.col = 0; this.animT = 0; this.exitPrompt = false;
+
+    playMus(MUS_BET);
 }
 
 ScreenBet.prototype.update=function(){
-    updMouse(); 
-    if(this.clickCD>0) this.clickCD--; 
-    this.animT++;
-
+    updMouse(); if(this.clickCD>0) this.clickCD--; this.animT++;
+    
     if(this.exitPrompt){
         if(btnp(4) || btnp(6)){
             this.m.refundBets(); 
             this.m.resetRaceOnly(); 
             this.exitPrompt = false; 
-            scene=menu;
+            scene = new ScreenMenu(); 
         }
         if(btnp(5)){ this.exitPrompt = false; }
         return; 
     }
 
-    if(btnp(2)) this.col = (this.col + 3) % 4; 
-    if(btnp(3)) this.col = (this.col + 1) % 4; 
-    if(btnp(0) || btnp(1)) this.row = (this.row + 1) % 2;
+    if(btnp(2)){ this.col = (this.col + 3) % 4; sfx(SND_NAV, -1, 8); } 
+    if(btnp(3)){ this.col = (this.col + 1) % 4; sfx(SND_NAV, -1, 8); }
+    if(btnp(0) || btnp(1)){ this.row = (this.row + 1) % 2; sfx(SND_NAV, -1, 8); }
     
     if(btnp(4)){ 
-        if(this.row === 1){
-            this.active = CHIP_VALS[this.col];
-        } else {
-            this.m.placeBet(this.col, this.active);
-        }
+        sfx(SND_SEL, -1, 20);
+        if(this.row === 1) this.active = CHIP_VALS[this.col];
+        else this.m.placeBet(this.col, this.active);
     }
     
     if(btnp(5)){
         if(this.m.betsTotal() > 0){
             this.m.startRace(); 
-            scene=race;
+            scene = new ScreenRace(this.m);
         }
     }
 
     if(btnp(6)){
-        if(this.m.betsTotal() > 0){
-            this.m.refundBets();
-        } else {
-            this.exitPrompt = true;
-        }
+        if(this.m.betsTotal() > 0){ sfx(SND_NAV, -1, 8); this.m.refundBets(); }
+        else { sfx(SND_NAV, -1, 8); this.exitPrompt = true; }
     }
 
-    var chipStartX = 35; 
-    var chipGap = 45;
-    
+    var chipStartX=35, chipGap=45; 
     for(var i=0;i<CHIP_VALS.length;i++){ 
-        var cx = chipStartX + (i * chipGap);
-        var cy = LAY.chipRowY - 22; 
-        
-        if(hit(cx, cy, 20, 20) && M.l){ 
-            this.active = CHIP_VALS[i];
-            this.row = 1; this.col = i; 
-        }
+        var cx = chipStartX + (i * chipGap), cy = LAY.chipRowY - 22;
+        if(hit(cx, cy, 20, 20) && M.l){ sfx(SND_SEL, -1, 8); this.active = CHIP_VALS[i]; this.row=1; this.col=i; }
     }
-
-    var startX = 20; 
-    var gapX = 52;
-    
+    var startX=20, gapX=52;
     for(var s=0;s<4;s++){
-        var sx = startX + (s * gapX);
-        var sy = LAY.betSuitY - 10; 
-        var boxW = 20; var boxH = 28;
-        
-        var bx = sx + (LAY.betSuitW - boxW)/2;
-        var by = sy + (LAY.betSuitH - boxH)/2;
-        
+        var sx = startX + (s * gapX), sy = LAY.betSuitY - 10, boxW=20, boxH=28;
+        var bx = sx + (LAY.betSuitW - boxW)/2, by = sy + (LAY.betSuitH - boxH)/2;
         if(hit(bx, by, boxW, boxH)){
-            if(M.x!=0) { this.row = 0; this.col = s; }
-            if((M.lp || (M.l && this.clickCD===0))){
-                this.m.placeBet(s, this.active); 
-                this.clickCD=6;
-            }
+            if(M.x!=0) { this.row=0; this.col=s; }
+            if((M.lp || (M.l && this.clickCD===0))){ sfx(SND_SEL, -1, 8); this.m.placeBet(s, this.active); this.clickCD=6; }
         }
     }
     
-    if(this.m.bank<=0 && this.m.betsTotal()===0){ this.m.winner=-1; this.m.commitBest(); scene=finish; }
+    if(this.m.bank<=0 && this.m.betsTotal()===0){ 
+        this.m.winner=-1; this.m.commitBest(); 
+        scene = new ScreenFinish(this.m); 
+    }
 };
 
 ScreenBet.prototype.draw=function(){ 
-    cls(0); 
-
-    map(30, 0, 30, 17, 0, 0, -1);
-
+    cls(0); map(30, 0, 30, 17, 0, 0, -1);
     print("APUESTAS", 11, 12, 7); 
     var bankText = "BANCO: " + (this.m.bank|0);
     var wBank = print(bankText, 0, -10, 0);
     print(bankText, W - wBank - 11, 12, 7); 
     
-    var CARD_IDS = [400, 403, 406, 409]; 
-    var TEAM_COLS = [13, 2, 4, 11];
-
-    var startX = 20; 
-    var gapX = 52; 
+    var CARD_IDS = [400, 403, 406, 409]; var TEAM_COLS = [13, 2, 4, 11];
+    var startX = 20, gapX = 52; 
 
     for(var s=0;s<4;s++){ 
-        var sx = startX + (s * gapX);
-        var sy = LAY.betSuitY - 10; 
-        
-        var boxW = 20; var boxH = 28; 
-        var bx = sx + (LAY.betSuitW - boxW)/2;
-        var by = sy + (LAY.betSuitH - boxH)/2;
+        var sx = startX + (s * gapX), sy = LAY.betSuitY - 10; 
+        var boxW = 20, boxH = 28; 
+        var bx = sx + (LAY.betSuitW - boxW)/2, by = sy + (LAY.betSuitH - boxH)/2;
 
-        if(!this.exitPrompt && this.row === 0 && this.col === s){
-            rectb(bx-2, by-2, boxW+4, boxH+4, 12);
-        }
-
-        rect(bx, by, boxW, boxH, 1); 
-        rectb(bx, by, boxW, boxH, ink(s)); 
-        
-        if(typeof pal === 'function'){
-            pal(14, TEAM_COLS[s]); pal(15, TEAM_COLS[s]); pal(0, TEAM_COLS[s]); pal(2, TEAM_COLS[s]); 
-        }
+        if(!this.exitPrompt && this.row === 0 && this.col === s){ rectb(bx-2, by-2, boxW+4, boxH+4, 12); }
+        rect(bx, by, boxW, boxH, 1); rectb(bx, by, boxW, boxH, ink(s)); 
+        if(typeof pal === 'function'){ pal(14, TEAM_COLS[s]); pal(15, TEAM_COLS[s]); pal(0, TEAM_COLS[s]); pal(2, TEAM_COLS[s]); }
         spr(CARD_IDS[s], bx+2, by+2, 0, 1, 0, 0, 2, 3);
         if(typeof pal === 'function') pal();
-        
         var v = this.m.bets[s]||0; 
         if(v > 0) {
             var wV = print(v, 0, -10, 0);
-            print(v, sx + (boxW-wV)/2 + 12 + 1, sy + boxH + 5, 0); 
-            print(v, sx + (boxW-wV)/2 + 12, sy + boxH + 4, 4);    
+            print(v, sx + (boxW-wV)/2 + 12 + 1, sy + boxH + 5, 0); print(v, sx + (boxW-wV)/2 + 12, sy + boxH + 4, 4); 
         }
     } 
     
-    var chipStartX = 35;
-    var chipGap = 45;
-    
+    var chipStartX = 35, chipGap = 45;
     for(var i=0;i<CHIP_VALS.length;i++){ 
-        var val = CHIP_VALS[i];
-        var sprites = CHIP_SPRITES[val]; 
-        var sprId = sprites[0]; 
-        
-        if(this.active === val){
-            var frame = (this.animT / 10 | 0) % 2; 
-            sprId = sprites[2 + frame]; 
-        } else if(!this.exitPrompt && this.row === 1 && this.col === i){
-            sprId = sprites[1];
-        }
-        
-        var cx = chipStartX + (i * chipGap);
-        var cy = LAY.chipRowY - 22; 
-
+        var val = CHIP_VALS[i]; var sprites = CHIP_SPRITES[val]; var sprId = sprites[0]; 
+        if(this.active === val){ var frame = (this.animT / 10 | 0) % 2; sprId = sprites[2 + frame]; } 
+        else if(!this.exitPrompt && this.row === 1 && this.col === i){ sprId = sprites[1]; }
+        var cx = chipStartX + (i * chipGap), cy = LAY.chipRowY - 22; 
         spr(sprId, cx, cy, 0, 1, 0, 0, 2, 2);
-        
         var wTxt = print(val, 0, -10, 0, false, 1, true); 
-        print(val, cx + 8 - (wTxt/2) + 1, cy + 19, 0, false, 1, true); 
-        print(val, cx + 8 - (wTxt/2), cy + 18, 6, false, 1, true);
+        print(val, cx + 8 - (wTxt/2) + 1, cy + 19, 0, false, 1, true); print(val, cx + 8 - (wTxt/2), cy + 18, 6, false, 1, true);
     } 
 
-    var yK = H-12;
-    
-    rect(0, yK-2, W, 14, 0);
-
-    spr(KEY_Z, 4, yK-2, 0, 1, 0, 0, 2, 2);
-    print("Apostar", 22, yK+4, 6, false, 1, true);
-    
-    if(this.m.betsTotal() > 0){
-        spr(KEY_X, 85, yK-2, 0, 1, 0, 0, 2, 2);
-        print("Correr!", 103, yK+4, 11, false, 1, true);
-    } else {
-        print("Elije ficha...", 90, yK+4, 13, false, 1, true);
-    }
-
+    var yK = H-12; rect(0, yK-2, W, 14, 0);
+    spr(KEY_Z, 4, yK-2, 0, 1, 0, 0, 2, 2); print("Apostar", 22, yK+4, 6, false, 1, true);
+    if(this.m.betsTotal() > 0){ spr(KEY_X, 85, yK-2, 0, 1, 0, 0, 2, 2); print("Correr!", 103, yK+4, 11, false, 1, true); } 
+    else { print("Elije ficha...", 90, yK+4, 13, false, 1, true); }
     var labelStart = (this.m.betsTotal() > 0) ? "Limpiar" : "Salir";
-    spr(KEY_A, 170, yK-2, 0, 1, 0, 0, 2, 2);
-    print(labelStart, 188, yK+4, 6, false, 1, true);
+    spr(KEY_A, 170, yK-2, 0, 1, 0, 0, 2, 2); print(labelStart, 188, yK+4, 6, false, 1, true);
 
     if(this.exitPrompt){
-        rect(60, 40, 120, 50, 0);
-        rectb(60, 40, 120, 50, 12);
-        print("¿SALIR AL MENU?", 75, 50, 14);
-        spr(KEY_Z, 70, 70, 0, 1, 0, 0, 2, 2);
-        print("SI", 90, 75, 6);
-        spr(KEY_X, 110, 70, 0, 1, 0, 0, 2, 2);
-        print("NO", 130, 75, 6);
+        rect(60, 40, 120, 50, 0); rectb(60, 40, 120, 50, 12); print("¿SALIR AL MENU?", 75, 50, 14);
+        spr(KEY_Z, 70, 70, 0, 1, 0, 0, 2, 2); print("SI", 90, 75, 6);
+        spr(KEY_X, 110, 70, 0, 1, 0, 0, 2, 2); print("NO", 130, 75, 6);
     }
 }; 
 // =========================
 // classes/ui_race.js
 // =========================
-function ScreenRace(m){ this.m=m; this.auto=false; this.t=0; }
+function ScreenRace(m){ 
+    this.m=m; this.auto=false; this.t=0; 
+    playMus(MUS_RACE);
+}
 
 ScreenRace.prototype.update=function(){ 
     if(btnp(4)) this.m.stepFlip(); 
     if(btnp(5)) this.auto=!this.auto; 
-    if(btnp(6)) { this.m.refundBets(); scene=bet; } 
+    if(btnp(6)) { 
+        this.m.refundBets(); 
+        scene = new ScreenBet(this.m);
+    } 
     if(this.auto){ 
         this.t++; 
         if(this.t>18){ this.m.stepFlip(); this.t=0; } 
     } 
     if(this.m.winner>=0){ 
         this.m.finishRace(); 
-        scene=finish; 
+        scene = new ScreenFinish(this.m); 
     } 
 };
 
 ScreenRace.prototype.draw=function(){ 
     cls(0); 
-    
     var ui = new UI();
-    
     var x0=this.m.startX,x1=this.m.finishX,dx=this.m.dx,ys=this.m.ys; 
-
     map(60, 0, 30, 17, 0, 0, -1);
-
     ui.drawLineCards(x0, dx, ys, this.m.lineRevealed, this.m.lineSuits);
-
-    for(var j=0;j<4;j++){ 
-        var isWinner = (this.m.winner === j);
-        this.m.caballos[j].draw(isWinner); 
-    }
-
+    for(var j=0;j<4;j++){ var isWinner = (this.m.winner === j); this.m.caballos[j].draw(isWinner); }
     for(var s=0;s<4;s++){
-        var multX = x1 + 2; 
-        var multY = ys[s] - 4;
-        if(typeof pal === 'function'){
-            pal(14, TEAM_COLS[s]); pal(15, TEAM_COLS[s]); pal(0, TEAM_COLS[s]); pal(2, TEAM_COLS[s]); 
-        }
+        var multX = x1 + 2; var multY = ys[s] - 4;
+        if(typeof pal === 'function'){ pal(14, TEAM_COLS[s]); pal(15, TEAM_COLS[s]); pal(0, TEAM_COLS[s]); pal(2, TEAM_COLS[s]); }
         spr(ICON_IDS[s], multX, multY, 0, 1, 0, 0, 1, 1);
         if(typeof pal === 'function') pal();
         print('x'+this.m.mults[s], multX + 8, multY, ink(s));
     }
-
-    if(this.m.lastCard){ 
-        ui.drawLastCard(this.m.lastCard);
-    } 
-    
+    if(this.m.lastCard){ ui.drawLastCard(this.m.lastCard); } 
     ui.hudTop();
-
-    var yK = 120; 
-    var yText = yK + 5;
-
-    spr(KEY_Z, 4, yK, 0, 1, 0, 0, 2, 2);
-    print("Flip", 22, yText, 6);
-    
-    var autoText = this.auto ? "ON" : "OFF";
-    var autoCol = this.auto ? 11 : 6;
-    spr(KEY_X, 60, yK, 0, 1, 0, 0, 2, 2);
-    print("Flip Auto: " + autoText, 78, yText, autoCol);
-
-    spr(KEY_A, 180, yK, 0, 1, 0, 0, 2, 2);
-    print("Volver", 198, yText, 6);
+    var yK = 120; var yText = yK + 5;
+    spr(KEY_Z, 4, yK, 0, 1, 0, 0, 2, 2); print("Flip", 22, yText, 6);
+    var autoText = this.auto ? "ON" : "OFF"; var autoCol = this.auto ? 11 : 6;
+    spr(KEY_X, 60, yK, 0, 1, 0, 0, 2, 2); print("Flip Auto: " + autoText, 78, yText, autoCol);
+    spr(KEY_A, 180, yK, 0, 1, 0, 0, 2, 2); print("Volver", 198, yText, 6);
 }; 
 // =========================
 // classes/ui_finish.js
 // =========================
-function ScreenFinish(m){ this.m=m; }
+function ScreenFinish(m){ 
+    this.m=m; 
+    
+    stopMus();
+    
+    if(this.m.winner >= 0) {
+        music(MUS_WIN_TRACK, MUS_WIN_FRAME, 0, false);
+        currentMusic = MUS_WIN_TRACK;
+    }
+}
 
 ScreenFinish.prototype.update=function(){
     if(this.m.bank <= 0){
         if(btnp(4) || btnp(6)){
-            this.m.bank = 1000;
-            pmem(0, 1000);
-            this.m.resetRaceOnly();
-            scene = menu;
+            this.m.bank = 1000; pmem(0, 1000); this.m.resetRaceOnly(); 
+            scene = new ScreenMenu();
         }
     }
     else {
         if(btnp(4)){
             this.m.resetRaceOnly(); 
-            scene=bet;              
+            scene = new ScreenBet(this.m);
         }
         if(btnp(6)){
             var finalScore = this.m.bank;
@@ -684,58 +623,37 @@ ScreenFinish.prototype.update=function(){
                 nameEntry = new ScreenName(finalScore);
                 scene = nameEntry;
             } else {
-                this.m.bank = 1000; 
-                pmem(0, 1000);
-                this.m.resetRaceOnly();
-                scene = menu;
+                this.m.bank = 1000; pmem(0, 1000); this.m.resetRaceOnly(); 
+                scene = new ScreenMenu();
             }
         }
     }
 };
 
-ScreenFinish.prototype.draw=function(){
+ScreenFinish.prototype.draw=function(){ 
     cls(0); 
-    
     var centerX = 120;
-
-    rect(45, 20, 150, 96, 0); 
-    rectb(45, 20, 150, 96, 12);
-    
+    rect(45, 20, 150, 96, 0); rectb(45, 20, 150, 96, 12);
     var bankT='BANCO '+ (this.m.bank|0) +'  BEST '+(pmem(1)|0); 
     var w2=print(bankT,0,-6,0,true,1,true);
     print(bankT,(W-w2)/2, 26, 7, false, 1, true);
     
     if(this.m.winner>=0){ 
-        var txt = "GANADOR";
-        var wTxt = print(txt, 0, -10, 0); 
+        var txt = "GANADOR"; var wTxt = print(txt, 0, -10, 0); 
         print(txt, centerX - (wTxt/2), 38, 14); 
-        
         var iconId = ICON_IDS[this.m.winner];
-        
-        if(typeof pal === 'function'){
-            pal(14, TEAM_COLS[this.m.winner]); 
-            pal(15, TEAM_COLS[this.m.winner]); 
-            pal(0, TEAM_COLS[this.m.winner]); 
-            pal(2, TEAM_COLS[this.m.winner]); 
-        }
+        if(typeof pal === 'function'){ pal(14, TEAM_COLS[this.m.winner]); pal(15, TEAM_COLS[this.m.winner]); pal(0, TEAM_COLS[this.m.winner]); pal(2, TEAM_COLS[this.m.winner]); }
         spr(iconId, centerX - 4, 48, 0, 1, 0, 0, 1, 1);
         if(typeof pal === 'function') pal();
-        
         var winnerHorse = this.m.caballos[this.m.winner];
-        var oldX = winnerHorse.startX;
-        var oldY = winnerHorse.laneY;
-        
+        var oldX = winnerHorse.startX; var oldY = winnerHorse.laneY;
         winnerHorse.startX = centerX - (winnerHorse.pos * winnerHorse.dx);
         winnerHorse.laneY = 65; 
-        
         winnerHorse.draw(true, true); 
-        
-        winnerHorse.startX = oldX;
-        winnerHorse.laneY = oldY;
-        
-    } else { 
-        print('GAME OVER', 92, 50, 14); 
-    } 
+        winnerHorse.startX = oldX; winnerHorse.laneY = oldY;
+    } else { print('GAME OVER', 92, 50, 14); } 
+    
+    var yBtn = 90;
     
     var yBtn = 90;
     
@@ -760,33 +678,26 @@ ScreenFinish.prototype.draw=function(){
 function ScreenMenu(){ 
     this.idx=0; 
     this.opts=['Iniciar juego','Ver scores']; 
-
-    this.scrollX = 0;
-    this.scrollSpeed = 2; 
-
-    this.menuHorses = [
-        new Caballo(0, 80,  W/2 - 40, 0), 
-        new Caballo(1, 90,  W/2 - 10, 0),
-        new Caballo(2, 100, W/2 + 20, 0),
-        new Caballo(3, 110, W/2 + 50, 0)
-    ];
+    this.scrollX = 0; this.scrollSpeed = 2; 
+    this.menuHorses = [ new Caballo(0, 80, W/2-40, 0), new Caballo(1, 90, W/2-10, 0), new Caballo(2, 100, W/2+20, 0), new Caballo(3, 110, W/2+50, 0) ];
+    
+    playMus(MUS_MENU);
 }
 
 ScreenMenu.prototype.update=function(){
     this.scrollX = (this.scrollX + this.scrollSpeed) % 240;
+    for(var i=0; i<this.menuHorses.length; i++){ var h = this.menuHorses[i]; h.animTimer = this.scrollX; h.pos = 1; }
 
-    for(var i=0; i<this.menuHorses.length; i++){
-        var h = this.menuHorses[i];
-        h.animTimer = this.scrollX;
-        h.pos = 1; 
-    }
-
-    if(btnp(0)) this.idx=(this.idx+1)%2;
-    if(btnp(1)) this.idx=(this.idx+1)%2;
+    if(btnp(0)){ this.idx=(this.idx+1)%2; sfx(SND_NAV, -1, 8); }
+    if(btnp(1)){ this.idx=(this.idx+1)%2; sfx(SND_NAV, -1, 8); }
     
     if(btnp(4) || btnp(6)){
+        sfx(SND_SEL, -1, 20);
         if(this.idx===0){ 
-            model.bank = 1000; pmem(0, 1000); model.resetRaceOnly(); scene=bet; 
+            model.bank = 1000; 
+            pmem(0, 1000); 
+            model.resetRaceOnly(); 
+            scene = new ScreenBet(model); 
         }
         else if(this.idx===1){ scores=new ScreenScores(); scene=scores; }
     }
@@ -794,34 +705,18 @@ ScreenMenu.prototype.update=function(){
 
 ScreenMenu.prototype.draw=function(){ 
     cls(0); 
-
-    map(0, 51, 30, 17, -this.scrollX, 0, -1);
-    map(0, 51, 30, 17, -this.scrollX + 240, 0, -1);
-
-    for(var i=0; i<this.menuHorses.length; i++){
-        this.menuHorses[i].draw(false, false);
-    }
-
+    map(0, 51, 30, 17, -this.scrollX, 0, -1); map(0, 51, 30, 17, -this.scrollX + 240, 0, -1);
+    for(var i=0; i<this.menuHorses.length; i++){ this.menuHorses[i].draw(false, false); }
     spr(144, 56, 25, 0, 1, 0, 0, 16, 3);
-
     for(var i=0;i<2;i++){
-        var y=70+i*14;
-        var c=(i===this.idx)?14:7; 
-        var txt = (i===this.idx?'> ':' ')+this.opts[i];
-        
-        print(txt, 70-1, y, 0); print(txt, 70+1, y, 0);
-        print(txt, 70, y-1, 0); print(txt, 70, y+1, 0);
-        
+        var y=70+i*14; var c=(i===this.idx)?14:7; var txt = (i===this.idx?'> ':' ')+this.opts[i];
+        print(txt, 70-1, y, 0); print(txt, 70+1, y, 0); print(txt, 70, y-1, 0); print(txt, 70, y+1, 0);
         print(txt, 70, y, c); 
     } 
-    
     var yKeys = H-18;
     spr(KEY_Z, 81, yKeys, 0, 1, 0, 0, 2, 2);
-    
     var selTxt = "Seleccionar";
-    print(selTxt, 99-1, yKeys+5, 0); print(selTxt, 99+1, yKeys+5, 0);
-    print(selTxt, 99, yKeys+4, 0); print(selTxt, 99, yKeys+6, 0);
-    
+    print(selTxt, 99-1, yKeys+5, 0); print(selTxt, 99+1, yKeys+5, 0); print(selTxt, 99, yKeys+4, 0); print(selTxt, 99, yKeys+6, 0);
     print(selTxt, 99, yKeys+5, 6);
 }; 
 // =========================

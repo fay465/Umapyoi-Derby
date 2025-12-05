@@ -50,28 +50,25 @@ RaceModel.prototype.stepFlip=function(){
     var h=this.caballos[s]; 
     
     h.isStunned = false; 
-    
     h.pos=clamp(h.pos+1,0,LINKS); 
+    
     
     for(var l=1;l<=LINE_CARDS;l++){ 
         if(!this.lineRevealed[l]){ 
             var all=true; 
             for(var j=0;j<4;j++){ 
-                if(this.caballos[j].pos < l){ 
-                    all=false; 
-                    break; 
-                } 
+                if(this.caballos[j].pos < l){ all=false; break; } 
             } 
             
             if(all){ 
                 this.lineRevealed[l]=true; 
+                
                 
                 var sb=this.lineSuits[l]; 
                 var hb=this.caballos[sb]; 
                 
                 if(hb.pos > 0){ 
                     hb.pos--; 
-
                     hb.isStunned = true; 
                     hb.poofT = 24;
                 } 

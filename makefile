@@ -45,9 +45,14 @@ $(OUTPUT):
 	@echo Archivos combinados EXITOSAMENTE en $(OUTPUT)
 
 run:
-	$(TIC) --fs "." --cmd "new js & import code $(OUTPUT) & import tiles tiles.png & import sprites sprites.png & import map map.map & save $(CART) & run"
+	$(TIC) --fs "." --cmd "new js & import code $(OUTPUT) & import tiles tiles.png & import sprites sprites.png & import map map.map & load base_audio.tic sfx & load base_audio.tic music & save $(CART) & run"
 	@echo Ejecutando $(CART)
 
 clean:
 	del /f /q $(OUTPUT) $(CART) 2>nul
 	@echo Archivos eliminados
+	
+html:
+	@echo Exportando a HTML...
+	$(TIC) --fs "." --cli --cmd "new js & import code $(OUTPUT) & import tiles tiles.png & import sprites sprites.png & import map map.map & load base_audio.tic sfx & load base_audio.tic music & export html index.html & exit"
+	@echo ¡Juego exportado exitosamente a index.html!
