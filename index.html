@@ -16,6 +16,10 @@
         /* Uncomment to remove the frame on top of the canvas and start the game directly */
         /* #game-frame { display: none; } */
     </style>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#000000">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
 <body style="margin:0; padding:0;">
 
@@ -53,5 +57,16 @@
             });
         }
     </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./sw.js').then(function(registration) {
+        console.log('ServiceWorker registrado con exito: ', registration.scope);
+      }, function(err) {
+        console.log('ServiceWorker fallo al registrarse: ', err);
+      });
+    });
+  }
+</script>
 </body>
 </html>
