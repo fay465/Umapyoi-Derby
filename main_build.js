@@ -882,8 +882,16 @@ ScreenMenu.prototype.draw=function(){
 function ScreenScores(){ this.list=hs_load(); }
 
 ScreenScores.prototype.update=function(){ 
-
-    if(btnp(6) || btnp(4) || btnp(5)) scene=menu; 
+    updMouse();
+    
+    var yK = H-12;
+    var btnX = 90;
+    var btnY = yK - 10;
+    
+    if(btnp(6) || btnp(4) || btnp(5) || (M.lp && hit(btnX, btnY, 60, 20))) {
+        sfx(SND_NAV, -1, 4, -1, 8); 
+        scene=menu; 
+    }
 };
 
 ScreenScores.prototype.draw=function(){ 
@@ -902,9 +910,7 @@ ScreenScores.prototype.draw=function(){
     } 
 
     var yK = H-12;
-    var centerX = W/2;
-    
-    
+
     spr(KEY_A, 96, yK-5, 0, 1, 0, 0, 2, 2);
     print('Volver', 114, yK, 6); 
 }; 
@@ -914,17 +920,33 @@ ScreenScores.prototype.draw=function(){
 function ScreenName(score){ this.score=score|0; this.letters=[65,65,65]; this.pos=0; }
 
 ScreenName.prototype.update=function(){
+    updMouse();
 
-    if(btnp(2)) this.pos = (this.pos + 2) % 3;
-    if(btnp(3)) this.pos = (this.pos + 1) % 3;
+    if(btnp(2) || (M.lp && hit(50, 109, 12, 12))){ 
+        this.pos = (this.pos + 2) % 3;
+        sfx(SND_NAV, -1, 4, -1, 8);
+    }
 
-    if(btnp(0)) this.letters[this.pos] = (this.letters[this.pos] >= 90) ? 65 : this.letters[this.pos] + 1; 
-    if(btnp(1)) this.letters[this.pos] = (this.letters[this.pos] <= 65) ? 90 : this.letters[this.pos] - 1; 
-    
-    if(btnp(4)) { 
+    if(btnp(3) || (M.lp && hit(62, 109, 12, 12))){ 
+        this.pos = (this.pos + 1) % 3;
+        sfx(SND_NAV, -1, 4, -1, 8);
+    }
+
+    if(btnp(0) || (M.lp && hit(50, 95, 12, 12))){ 
+        this.letters[this.pos] = (this.letters[this.pos] >= 90) ? 65 : this.letters[this.pos] + 1; 
+        sfx(SND_NAV, -1, 4, -1, 8);
+    }
+
+    if(btnp(1) || (M.lp && hit(62, 95, 12, 12))){ 
+        this.letters[this.pos] = (this.letters[this.pos] <= 65) ? 90 : this.letters[this.pos] - 1; 
+        sfx(SND_NAV, -1, 4, -1, 8);
+    }
+
+    if(btnp(4) || (M.lp && hit(70, 120, 100, 20))) { 
+        sfx(SND_SEL, -1, 8, -1, 10);
+        
         var name=String.fromCharCode(this.letters[0],this.letters[1],this.letters[2]); 
         hs_insert(this.score,name); 
-        
         model.bank = 1000;
         pmem(0, 1000);
         model.resetRaceOnly();

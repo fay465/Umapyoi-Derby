@@ -4,8 +4,16 @@
 function ScreenScores(){ this.list=hs_load(); }
 
 ScreenScores.prototype.update=function(){ 
-
-    if(btnp(6) || btnp(4) || btnp(5)) scene=menu; 
+    updMouse();
+    
+    var yK = H-12;
+    var btnX = 90;
+    var btnY = yK - 10;
+    
+    if(btnp(6) || btnp(4) || btnp(5) || (M.lp && hit(btnX, btnY, 60, 20))) {
+        sfx(SND_NAV, -1, 4, -1, 8); 
+        scene=menu; 
+    }
 };
 
 ScreenScores.prototype.draw=function(){ 
@@ -24,9 +32,7 @@ ScreenScores.prototype.draw=function(){
     } 
 
     var yK = H-12;
-    var centerX = W/2;
-    
-    
+
     spr(KEY_A, 96, yK-5, 0, 1, 0, 0, 2, 2);
     print('Volver', 114, yK, 6); 
 };
